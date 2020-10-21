@@ -21,7 +21,7 @@ const drawParams = {
 
 // 1 - here we are faking an enumeration
 const DEFAULTS = Object.freeze({
-	sound1  :  "media/Cave Story ► Moonsong (Curly's Deep House Remix) ► GameChops (192 kbps).mp3"
+	sound1  :  "media/Cave Story - Moonsong (Curly's Deep House Remix) - GameChops (192 kbps).mp3"
 });
 
 function init(){
