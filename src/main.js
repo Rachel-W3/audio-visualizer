@@ -16,12 +16,12 @@ const drawParams = {
   showCircles : true,
   showNoise : false,
   showInvert : false,
-  showEmboss : false
+  showEmboss : false,
 };
 
 // 1 - here we are faking an enumeration
 const DEFAULTS = Object.freeze({
-	sound1  :  "media/New Adventure Theme.mp3"
+	sound1  :  "media/Pokémon Sun and Moon_ Hau'oli City Remix (192 kbps).mp3"
 });
 
 function init(){
