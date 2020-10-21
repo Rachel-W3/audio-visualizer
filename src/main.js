@@ -11,9 +11,9 @@ import * as audio from './audio.js';
 import * as utils from './utils.js';
 
 const drawParams = {
-  showGradient : true,
+  showParticles : true,
   showBars : true,
-  showCircles : true,
+  dayTime : false,
   showNoise : false,
   showInvert : false,
   showEmboss : false,
@@ -21,7 +21,7 @@ const drawParams = {
 
 // 1 - here we are faking an enumeration
 const DEFAULTS = Object.freeze({
-	sound1  :  "media/Pokémon Sun and Moon_ Hau'oli City Remix (192 kbps).mp3"
+	sound1  :  "media/Cave Story ► Moonsong (Curly's Deep House Remix) ► GameChops (192 kbps).mp3"
 });
 
 function init(){
@@ -91,14 +91,14 @@ function setupUI(canvasElement){
   };
 
   // E - Checkboxes
-  document.querySelector("#gradientCB").checked = drawParams.showGradient;
+  document.querySelector("#particlesCB").checked = drawParams.showParticles;
   document.querySelector("#barsCB").checked = drawParams.showBars;
-  document.querySelector("#circlesCB").checked = drawParams.showCircles;
+  document.querySelector("#dayCB").checked = drawParams.dayTime;
   document.querySelector("#noiseCB").checked = drawParams.showNoise;
   document.querySelector("#invertCB").checked = drawParams.showInvert;
   document.querySelector("#embossCB").checked = drawParams.showEmboss;
 
-  document.querySelector("#gradientCB").onchange = e => {
+  document.querySelector("#particlesCB").onchange = e => {
     drawParams.showGradient = e.target.checked;
   }
 
@@ -106,7 +106,7 @@ function setupUI(canvasElement){
     drawParams.showBars = e.target.checked;
   }
 
-  document.querySelector("#circlesCB").onchange = e => {
+  document.querySelector("#dayCB").onchange = e => {
     drawParams.showCircles = e.target.checked;
   }
 

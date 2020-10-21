@@ -1,6 +1,7 @@
 body {
-	background: #eeeeee;
-	font-family: tahoma, verdana, sans serif;
+	background: rgb(2, 21, 39);
+  font-family: tahoma, verdana, sans serif;
+  color: rgb(253, 254, 200);
 }
 
 canvas {

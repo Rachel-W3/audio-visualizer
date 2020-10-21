@@ -33,19 +33,9 @@ function draw(params={}){
 	
 	// 2 - draw background
     ctx.save();
-    ctx.fillStyle = "black";
-    ctx.globalAlpha = .1;
+    ctx.fillStyle = "rgb(4, 39, 71)";
     ctx.fillRect(0,0,canvasWidth,canvasHeight);
     ctx.restore();
-		
-	// 3 - draw gradient
-    if(params.showGradient){
-        ctx.save();
-        ctx.fillStyle = gradient;
-        ctx.globalAlpha = .3;
-        ctx.fillRect(0,0,canvasWidth,canvasHeight);
-        ctx.restore();
-    }
 
     // draw hills
     let rearSX, rearSY, rearCP1X, rearCP1Y, rearCP2X, rearCP2Y, rearEX, rearEY,
@@ -70,10 +60,10 @@ function draw(params={}){
     frontSX = canvasWidth/3 * -2;
     frontCP1X = canvasWidth/-3;
     
-    // 4 - draw bars
+    // 4 - draw rear bars
     if(params.showBars) {
         ctx.save();
-        ctx.fillStyle = 'rgba(255,255,255,0.50)';
+        ctx.fillStyle = 'rgba(147, 192, 163, 0.5)';
         // loop through lower frequencies and draw the data over rear hill
         for(let i = midpoint; i >= 0; i--) {
             let bezierX = utils.getBezierX(0.5 - i/audioData.length, rearSX, rearCP1X, rearCP2X, rearEX);
@@ -98,9 +88,10 @@ function draw(params={}){
     ctx.fill();
     ctx.restore();
 
+    // draw front bars
     if(params.showBars) {
         ctx.save();
-        ctx.fillStyle = 'rgb(253, 254, 255)';
+        ctx.fillStyle = 'rgb(147, 192, 163)';
         // loop through higher frequencies and draw the data over front hill
         for(let i = midpoint-1; i < audioData.length; i++) {
             let bezierX = utils.getBezierX(i/audioData.length, frontSX, frontCP1X, frontCP2X, frontEX);
@@ -120,39 +111,20 @@ function draw(params={}){
     ctx.restore();
 	
     // 5 - draw circles
-    if (params.showCircles) {
-        let maxRadius = canvasHeight/4;
-        ctx.save();
-        ctx.globalAlpha = 0.5;
-        for(let i=0; i<audioData.length; i++) {
-            // red-ish circles
-            let percent = audioData[i] / 255;
-
-            let circleRadius = percent * maxRadius;
-            ctx.beginPath();
-            ctx.fillStyle = utils.makeColor(255, 111, 111, .34 - percent/3.0);
-            ctx.arc(canvasWidth/2, canvasHeight/2, circleRadius, 0, 2*Math.PI, false);
-            ctx.fill();
-            ctx.closePath();
-
-            // blue-ish circles, bigger, more transparent
-            ctx.beginPath();
-            ctx.fillStyle = utils.makeColor(0, 0, 255, .10 - percent/10.0);
-            ctx.arc(canvasWidth/2, canvasHeight/2, circleRadius*1.5, 0, 2*Math.PI, false);
-            ctx.fill();
-            ctx.closePath();
-
-            // yellow-ish circles, smaller
-            ctx.save();
-            ctx.beginPath();
-            ctx.fillStyle = utils.makeColor(200, 200, 0, .5 - percent/5.0);
-            ctx.arc(canvasWidth/2, canvasHeight/2, circleRadius*0.50, 0, 2*Math.PI, false);
-            ctx.fill();
-            ctx.closePath();
-            ctx.restore();
-        }
-        ctx.restore();
+    let percent = 0;
+    for(let i = 0; i < audioData.length; i++)
+    {
+        percent += audioData[i]/1000;
     }
+    ctx.save();
+    ctx.fillStyle = 'rgb(253, 254, 200)';
+    ctx.beginPath();
+    ctx.arc(600, 100, 60 + percent, 0, Math.PI*2, false);
+    ctx.shadowBlur = 50;
+    ctx.shadowColor = "rgb(253, 254, 200)";
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
     
     // 6 - bitmap manipulation
 	// TODO: right now. we are looping though every pixel of the canvas (320,000 of them!), 
