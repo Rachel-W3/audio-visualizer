@@ -1,6 +1,6 @@
 /*
-	main.js is primarily responsible for hooking up the UI to the rest of the application 
-	and setting up the main event loop
+  main.js is primarily responsible for hooking up the UI to the rest of the application 
+  and setting up the main event loop
 */
 
 // We will write the functions in this file in the traditional ES5 way
@@ -11,30 +11,38 @@ import * as audio from './audio.js';
 import * as utils from './utils.js';
 
 const drawParams = {
-  showParticles : true,
-  showBars : true,
-  dayTime : false,
-  showNoise : false,
-  showInvert : false,
-  showEmboss : false,
+  showParticles: true,
+  showBars: true,
+  dayTime: false,
+  showNoise: false,
+  showInvert: false,
+  showEmboss: false,
+  particleMultiplier: 1
 };
+
+let startTime;
+let elapsedTime;
 
 // 1 - here we are faking an enumeration
 const DEFAULTS = Object.freeze({
-	sound1  :  "media/Cave Story - Moonsong (Curly's Deep House Remix) - GameChops (192 kbps).mp3"
+  sound1: "media/Cave Story - Moonsong (Curly's Deep House Remix) - GameChops (192 kbps).mp3"
 });
 
-function init(){
+function init() {
   audio.setupWebAudio(DEFAULTS.sound1);
-	console.log("init called");
-	console.log(`Testing utils.getRandomColor() import: ${utils.getRandomColor()}`);
-	let canvasElement = document.querySelector("canvas"); // hookup <canvas> element
+  console.log("init called");
+  console.log(`Testing utils.getRandomColor() import: ${utils.getRandomColor()}`);
+  let canvasElement = document.querySelector("canvas"); // hookup <canvas> element
   setupUI(canvasElement);
-  canvas.setupCanvas(canvasElement,audio.analyserNode);
+  canvas.setupCanvas(canvasElement, audio.analyserNode);
   loop();
+  // // Generate some more particles after every second
+  // let min = 5 * drawParams.particleMultiplier;
+  // let max = 15 * drawParams.particleMultiplier;
+  // setInterval(canvas.generateParticles, 1000, utils.getRandom(min,max));
 }
 
-function setupUI(canvasElement){
+function setupUI(canvasElement) {
   // A - hookup fullscreen button
   const fsButton = document.querySelector("#fsButton");
 
@@ -52,10 +60,10 @@ function setupUI(canvasElement){
       audio.audioCtx.resume();
     }
     console.log(`audioCtx.state after = ${audio.audioCtx.state}`);
-    if (e.target.dataset.playing == "no"){
+    if (e.target.dataset.playing == "no") {
       // if track is currently paused, play it
       audio.playCurrentSound();
-      e.target.dataset.playing ="yes"; // our CSS will set the text to "Pause"
+      e.target.dataset.playing = "yes"; // our CSS will set the text to "Pause"
     }
     else {
       // if track is playing, pause it
@@ -64,20 +72,28 @@ function setupUI(canvasElement){
     }
   };
 
-  // C - hookup volume slider and label
+  // C - hookup sliders and labels
   let volumeSlider = document.querySelector("#volumeSlider");
   let volumeLabel = document.querySelector("#volumeLabel");
+  let pmSlider = document.querySelector("#pmSlider");
+  let pmLabel = document.querySelector("#pmLabel");
 
   // add .oninput event to slider
   volumeSlider.oninput = e => {
     //set the gain
     audio.setVolume(e.target.value);
     //update the value of label to match value of slider
-    volumeLabel.innerHTML = Math.round((e.target.value/2 * 100));
+    volumeLabel.innerHTML = Math.round((e.target.value / 2 * 100));
   };
 
-  // set value ofo label to match initial value of slider
+  pmSlider.oninput = e => {
+    drawParams.particleMultiplier = e.target.value;
+    pmLabel.innerHTML = e.target.value;
+  }
+
+  // set value of label to match initial value of slider
   volumeSlider.dispatchEvent(new Event("input"));
+  pmSlider.dispatchEvent(new Event("input"));
 
   // D - hookup track <select>
   let trackSelect = document.querySelector("#trackSelect");
@@ -85,7 +101,7 @@ function setupUI(canvasElement){
   trackSelect.onchange = e => {
     audio.loadSoundFile(e.target.value);
     // pause the current track if it is playing
-    if(playButton.dataset.playing = "yes"){
+    if (playButton.dataset.playing = "yes") {
       playbutton.dispatchEvent(new MouseEvent("click"));
     }
   };
@@ -99,7 +115,7 @@ function setupUI(canvasElement){
   document.querySelector("#embossCB").checked = drawParams.showEmboss;
 
   document.querySelector("#particlesCB").onchange = e => {
-    drawParams.showGradient = e.target.checked;
+    drawParams.showParticles = e.target.checked;
   }
 
   document.querySelector("#barsCB").onchange = e => {
@@ -107,7 +123,7 @@ function setupUI(canvasElement){
   }
 
   document.querySelector("#dayCB").onchange = e => {
-    drawParams.showCircles = e.target.checked;
+    drawParams.dayTime = e.target.checked;
   }
 
   document.querySelector("#noiseCB").onchange = e => {
@@ -121,39 +137,27 @@ function setupUI(canvasElement){
   document.querySelector("#embossCB").onchange = e => {
     drawParams.showEmboss = e.target.checked;
   }
-	
+
 } // end setupUI
 
-function loop(){
-  /* NOTE: This is temporary testing code that we will delete in Part II */
-    requestAnimationFrame(loop);
 
-    canvas.draw(drawParams);
-    // 1) create a byte array (values of 0-255) to hold the audio data
-    // normally, we do this once when the program starts up, NOT every frame
-    // let audioData = new Uint8Array(audio.analyserNode.fftSize/2);
-    
-    // 2) populate the array of audio data *by reference* (i.e. by its address)
-    // audio.analyserNode.getByteFrequencyData(audioData);
-    //audio.analyserNode.getByteTimeDomainData(data); // waveform data
-    
-    // 3) log out the array and the average loudness (amplitude) of all of the frequency bins
-      // console.log(audioData);
-      
-      // console.log("-----Audio Stats-----");
-      // let totalLoudness =  audioData.reduce((total,num) => total + num);
-      // let averageLoudness =  totalLoudness/(audio.analyserNode.fftSize/2);
-      // let minLoudness =  Math.min(...audioData); // ooh - the ES6 spread operator is handy!
-      // let maxLoudness =  Math.max(...audioData); // ditto!
-      // // Now look at loudness in a specific bin
-      // // 22050 kHz divided by 128 bins = 172.23 kHz per bin
-      // // the 12th element in array represents loudness at 2.067 kHz
-      // let loudnessAt2K = audioData[11]; 
-      // console.log(`averageLoudness = ${averageLoudness}`);
-      // console.log(`minLoudness = ${minLoudness}`);
-      // console.log(`maxLoudness = ${maxLoudness}`);
-      // console.log(`loudnessAt2K = ${loudnessAt2K}`);
-      // console.log("---------------------");
+
+function loop(timeStamp) {
+  requestAnimationFrame(loop);
+
+  if(startTime == undefined) startTime = timeStamp;
+  elapsedTime = timeStamp - startTime;
+
+  canvas.draw(drawParams);
+  
+  if(elapsedTime > 1000) {
+    // Generate some more particles after every second
+    let min = 5 * drawParams.particleMultiplier;
+    let max = 15 * drawParams.particleMultiplier;
+    canvas.generateParticles(utils.getRandom(min,max));
+    startTime = timeStamp;
+    elapsedTime = timeStamp - startTime;
   }
+}
 
-export {init};
+export { init };

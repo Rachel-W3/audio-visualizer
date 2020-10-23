@@ -8,39 +8,38 @@
 */
 
 import * as utils from './utils.js';
+import * as classes from "./classes.js";
 
-let ctx,canvasWidth,canvasHeight,gradient,analyserNode,audioData;
+let ctx,canvasWidth,canvasHeight,gradient,analyserNode,audioData,particles;
 
 function setupCanvas(canvasElement,analyserNodeRef){
 	// create drawing context
 	ctx = canvasElement.getContext("2d");
 	canvasWidth = canvasElement.width;
 	canvasHeight = canvasElement.height;
-	// create a gradient that runs top to bottom
-	gradient = utils.getLinearGradient(ctx,0,0,0,canvasHeight,[{percent:0,color:"black"},{percent:.25,color:"rgb(0,27,209)"},{percent:.5,color:"rgb(107,126,255)"},{percent:.75,color:"rgb(0,27,209)"},{percent:1,color:"black"}]);
 	// keep a reference to the analyser node
 	analyserNode = analyserNodeRef;
 	// this is the array where the analyser data will be stored
-	audioData = new Uint8Array(analyserNode.fftSize/2);
+    audioData = new Uint8Array(analyserNode.fftSize/2);
+
+    // Start off with 50 particles
+    particles = [];
 }
 
-function draw(params={}){
-    // 1 - populate the audioData array with the frequency data from the analyserNode
-    // notice these arrays are passed "by reference"
-    analyserNode.getByteFrequencyData(audioData);
-	// OR
-	//analyserNode.getByteTimeDomainData(audioData); // waveform data
-	
-	// 2 - draw background
-    ctx.save();
-    ctx.fillStyle = "rgb(4, 39, 71)";
-    ctx.fillRect(0,0,canvasWidth,canvasHeight);
-    ctx.restore();
+function generateParticles(num) {
+    for(let i = 0; i < num; i++){
+        let x = 600;
+        let y = 100;
+        let radius = utils.getRandom(3, 7);
+        let direction = utils.getRandomUnitVector();
+        let speed = utils.getRandom(0.3, 1);
+        let alpha = utils.getRandom(0.1, 1);
+    
+        particles.push(new classes.Particle(x, y, radius, direction, speed, alpha));
+    }
+}
 
-    // draw hills
-    let rearSX, rearSY, rearCP1X, rearCP1Y, rearCP2X, rearCP2Y, rearEX, rearEY,
-        frontSX, frontSY, frontCP1X, frontCP1Y, frontCP2X, frontCP2Y, frontEX, frontEY;
-
+function drawBarsAndHills(showBars, dayTime) {
     // Bar variables
     let midpoint = audioData.length / 2;
     let barSpacing = 3;
@@ -51,6 +50,9 @@ function draw(params={}){
     let topSpacing = canvasHeight/2 + 40;
 
     // Initializing points for bezier curve
+    let rearSX, rearSY, rearCP1X, rearCP1Y, rearCP2X, rearCP2Y, rearEX, rearEY,
+        frontSX, frontSY, frontCP1X, frontCP1Y, frontCP2X, frontCP2Y, frontEX, frontEY;
+
     rearSX = canvasWidth/3 * 5;
     rearSY = rearEY = frontSY = frontEY = canvasHeight;
     rearCP1X = canvasWidth/3 * 4;
@@ -61,9 +63,10 @@ function draw(params={}){
     frontCP1X = canvasWidth/-3;
     
     // 4 - draw rear bars
-    if(params.showBars) {
+    if(showBars) {
         ctx.save();
-        ctx.fillStyle = 'rgba(147, 192, 163, 0.5)';
+        if(dayTime) ctx.fillStyle = 'rgba(32, 90, 69)';
+        else ctx.fillStyle = 'rgba(147, 192, 163, 0.5)';
         // loop through lower frequencies and draw the data over rear hill
         for(let i = midpoint; i >= 0; i--) {
             let bezierX = utils.getBezierX(0.5 - i/audioData.length, rearSX, rearCP1X, rearCP2X, rearEX);
@@ -81,7 +84,8 @@ function draw(params={}){
 
     // draw rear hill
     ctx.save();
-    ctx.fillStyle = 'rgb(32, 90, 69)';
+    if(dayTime) ctx.fillStyle = 'rgba(62, 173, 133)';
+    else ctx.fillStyle = 'rgb(32, 90, 69)';
     ctx.beginPath();
     ctx.moveTo(rearSX, rearSY);
     ctx.bezierCurveTo(rearCP1X, rearCP1Y, rearCP2X, rearCP2Y, rearEX, rearEY);
@@ -89,9 +93,10 @@ function draw(params={}){
     ctx.restore();
 
     // draw front bars
-    if(params.showBars) {
+    if(showBars) {
         ctx.save();
-        ctx.fillStyle = 'rgb(147, 192, 163)';
+        if(dayTime) ctx.fillStyle = 'rgb(32, 90, 69, 0.5)';
+        else ctx.fillStyle = 'rgb(147, 192, 163)';
         // loop through higher frequencies and draw the data over front hill
         for(let i = midpoint-1; i < audioData.length; i++) {
             let bezierX = utils.getBezierX(i/audioData.length, frontSX, frontCP1X, frontCP2X, frontEX);
@@ -103,29 +108,56 @@ function draw(params={}){
 
     // draw front hill
     ctx.save();
-    ctx.fillStyle = 'rgb(45, 126, 96)';
+    if(dayTime) ctx.fillStyle = 'rgb(108, 203, 168)';
+    else ctx.fillStyle = 'rgb(45, 126, 96)';
     ctx.beginPath();
     ctx.moveTo(frontSX, frontSY);
     ctx.bezierCurveTo(frontCP1X, frontCP1Y, frontCP2X, frontCP2Y, frontEX, frontEY);
     ctx.fill();
     ctx.restore();
-	
-    // 5 - draw circles
+}
+
+function drawParticles(showParticles) {
+    if(showParticles) {
+        // Audio data will influence color and speed of particles
+        let percent = 0;
+        for(let i = 0; i < audioData.length; i++)
+        {
+            percent += audioData[i]/3840;
+        }
+        for(let p of particles) {
+            if (p.x < (0-p.radius) || p.x > (canvasWidth+p.radius) || p.y < (0-p.radius) || p.y > (canvasHeight+p.radius)) {
+                p.isActive = false;
+            }
+            p.moveForward(percent);
+            p.draw(ctx,percent/2);
+        }
+    }
+}
+
+function drawMoon(dayTime) {
+    // 5 - draw moon/sun
+    // Size of the moon is determined by audio data
     let percent = 0;
     for(let i = 0; i < audioData.length; i++)
     {
         percent += audioData[i]/1000;
     }
     ctx.save();
-    ctx.fillStyle = 'rgb(253, 254, 200)';
+    let color;
+    if(dayTime) color = 'rgb(253, 213, 79)';
+    else color = 'rgb(253, 254, 200)';
+    ctx.fillStyle = color;
     ctx.beginPath();
     ctx.arc(600, 100, 60 + percent, 0, Math.PI*2, false);
     ctx.shadowBlur = 50;
-    ctx.shadowColor = "rgb(253, 254, 200)";
+    ctx.shadowColor = color;
     ctx.closePath();
     ctx.fill();
     ctx.restore();
-    
+}
+
+function bitmapManipulation(params={}) {
     // 6 - bitmap manipulation
 	// TODO: right now. we are looping though every pixel of the canvas (320,000 of them!), 
 	// regardless of whether or not we are applying a pixel effect
@@ -175,4 +207,30 @@ function draw(params={}){
     ctx.putImageData(imageData, 0, 0);
 }
 
-export {setupCanvas,draw};
+function draw(params={}){
+    // 1 - populate the audioData array with the frequency data from the analyserNode
+    // notice these arrays are passed "by reference"
+    analyserNode.getByteFrequencyData(audioData);
+	// OR
+	//analyserNode.getByteTimeDomainData(audioData); // waveform data
+	
+	// 2 - draw background
+    ctx.save();
+    // create a gradient that runs top to bottom
+    if(params.dayTime) gradient = utils.getLinearGradient(ctx,0,0,0,canvasHeight,[{percent:0,color:"#4072b9"},{percent:0.5,color:"#7cabd9"},{percent:1,color:"#c3d8e9"}]);
+    else gradient = utils.getLinearGradient(ctx,0,0,0,canvasHeight,[{percent:0,color:"#020c26"},{percent:0.5,color:"#032140"},{percent:1,color:"#215e70"}]);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0,0,canvasWidth,canvasHeight);
+    ctx.restore();
+
+    drawBarsAndHills(params.showBars, params.dayTime);
+    drawParticles(params.showParticles);
+    drawMoon(params.dayTime);
+
+    bitmapManipulation(params);
+
+    // Delete the particles that are off the screen
+    particles = particles.filter(p => p.isActive);
+}
+
+export {setupCanvas,draw,generateParticles};
