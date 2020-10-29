@@ -28,8 +28,8 @@ function setupCanvas(canvasElement,analyserNodeRef){
 
 function generateParticles(num) {
     for(let i = 0; i < num; i++){
-        let x = 600;
-        let y = 100;
+        let x = canvasWidth - 225;
+        let y = canvasHeight/4;
         let radius = utils.getRandom(3, 7);
         let direction = utils.getRandomUnitVector();
         let speed = utils.getRandom(0.3, 1);
@@ -39,15 +39,14 @@ function generateParticles(num) {
     }
 }
 
-function drawBarsAndHills(showBars, mode) {
+function drawBarsAndHills(showBars, mode, barSpacing) {
     // Bar variables
     let midpoint = audioData.length / 2;
     let margin = 0;
-    let barSpacing = 3.5;
     let screenWidthForBars = canvasWidth - (audioData.length * barSpacing) - margin * 2;
     let barWidth = screenWidthForBars / midpoint;
-    let barHeight = 200;
-    let topSpacing = canvasHeight/2 + 40;
+    let barHeight = canvasHeight/2;
+    let topSpacing = canvasHeight/2 - canvasHeight/10;
 
     // Initializing points for bezier curve
     let rearSX, rearSY, rearCP1X, rearCP1Y, rearCP2X, rearCP2Y, rearEX, rearEY,
@@ -145,11 +144,12 @@ function drawMoon(mode) {
     }
     ctx.save();
     let color;
+    let radius = canvasWidth/15;
     if(mode == "dayTime") color = 'rgb(253, 213, 79)';
     else color = 'rgb(253, 254, 200)';
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(600, 100, 60 + percent, 0, Math.PI*2, false);
+    ctx.arc(canvasWidth - (canvasWidth/radius * 15), canvasHeight/4, radius + percent, 0, Math.PI*2, false);
     ctx.shadowBlur = 50;
     ctx.shadowColor = color;
     ctx.closePath();
@@ -222,7 +222,7 @@ function draw(params={}){
     ctx.fillRect(0,0,canvasWidth,canvasHeight);
     ctx.restore();
 
-    drawBarsAndHills(params.showBars, params.mode);
+    drawBarsAndHills(params.showBars, params.mode, params.barSpacing);
     drawParticles(params.showParticles);
     drawMoon(params.mode);
 

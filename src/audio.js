@@ -1,16 +1,14 @@
-import * as utils from './utils.js';
-
 // 1 - our WebAudio context, **we will export and make this public at the bottom of the file**
 let audioCtx;
 
 // **These are "private" properties - these will NOT be visible outside of this module (i.e. file)**
 // 2 - WebAudio nodes that are part of our WebAudio audio routing graph
-let element, sourceNode, analyserNode, gainNode, reverb;
+let element, sourceNode, analyserNode, gainNode, reverb, oscillator, distortion, distortionFilter;
 
 // 3 - here we are faking an enumeration
 const DEFAULTS = Object.freeze({
    gain : 0.5,
-   numSamples : 256 
+   numSamples : 256
 });
 
 // 4 - create a new array of 8-bit integers (0-255)
@@ -28,6 +26,8 @@ function setupWebAudio(filePath){
 
     // 3 - have it point at a sound file
     loadSoundFile(filePath);
+
+    distortion = false;
 
     // 4 - create an a source node that points at the <audio> element
     sourceNode = audioCtx.createMediaElementSource(element);
@@ -53,26 +53,52 @@ function setupWebAudio(filePath){
     gainNode = audioCtx.createGain();
     gainNode.gain.value = DEFAULTS.gain;
 
-    // Create reverb with convolver node
-    reverb = await createReverb(element.src);
+    // Create reverb with convolver node - abandoned
+    // reverb = createReverb(element.src);
+
+    // Create oscillator node for square wave effect - abandoned
+    // oscillator = audioCtx.createOscillator();
+    // oscillator.type = "square";
+
+    let biquadFilter = audioCtx.createBiquadFilter();
+	biquadFilter.type = "highshelf";
+
+	distortionFilter = audioCtx.createWaveShaper();
 
     // 8 - connect the nodes - we now have an audio graph
-    sourceNode.connect(analyserNode);
+    sourceNode.connect(distortionFilter);
+    distortionFilter.connect(analyserNode);
     analyserNode.connect(gainNode);
-    //gainNode.connect(audioCtx.destination);
-    gainNode.connect(reverb);
-    reverb.connect(audioCtx.destination);
+    // oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    // gainNode.connect(reverb);
+    // reverb.connect(audioCtx.destination);
 }
 
+// This function was originally for reverb, but I couldn't get it to work in the limited time
 // Source code: https://developer.mozilla.org/en-US/docs/Web/API/ConvolverNode
-async function createReverb(filePath) {
+function createReverb(filePath) {
     let convolver = audioCtx.createConvolver();
 
-    // load impulse response from file
-    let response     = await fetch(filePath);
-    console.log(response);
-    let arraybuffer  = await response.arrayBuffer();
-    convolver.buffer = await audioCtx.decodeAudioData(arraybuffer);
+    // load impulse response from file\
+    const request = async function() {
+        let response = await fetch(filePath);
+        //const json = await response.json();
+        let arraybuffer  = await response.arrayBuffer();
+        return arraybuffer;
+    }
+
+    request().then(function(arraybuffer) {
+        // console.log(arraybuffer);
+        audioCtx.decodeAudioData(arraybuffer,
+                                function(buffer) {
+                                convolver.buffer = buffer;
+                                },
+                                function(e) {
+                                alert("Error when decoding audio data" + e.err);
+        });
+    });
 
     return convolver;
 }
@@ -94,8 +120,35 @@ function setVolume(value){
     gainNode.gain.value = value;
 }
 
-function drawProgressBar() {
-    
+function toggleDistortion(checked){
+    distortion = checked;
+    if(distortion){
+        distortionFilter.curve = null; // being paranoid and trying to trigger garbage collection
+        distortionFilter.curve = makeDistortionCurve();
+    }else{
+        distortionFilter.curve = null;
+    }
 }
 
-export {audioCtx, setupWebAudio, playCurrentSound, pauseCurrentSound, loadSoundFile, setVolume, analyserNode};
+function makeDistortionCurve() {
+    let n_samples = 256, curve = new Float32Array(n_samples);
+    let k = 20;
+    let deg = Math.PI / 180;
+    for (let i =0 ; i < n_samples; ++i ) {
+        let x = i * 2 / n_samples - 1;
+        //curve[i] = (Math.PI + amount) * x / (Math.PI + amount * Math.abs(x));
+        //curve[i] = (Math.PI + amount) * x / (Math.PI + amount * Math.abs(x));
+        //curve[i] =(Math.PI + 100 * x/2) / (Math.PI + 100 * Math.abs(x)); // nice distortion
+        //curve[i] = -(Math.PI + 100 * x/2) / (Math.PI + 50 * Math.abs(x));
+
+        //curve[i] = Math.random() * 2 - 1;	// static!	
+        //curve[i] = x * 5 + Math.random() * 2 - 1; // adds a less intrusive static to the audio
+        //curve[i] = x * Math.sin(x) * amount/5; // sounds like a cross between Donlad Duck and Cartman from South Park
+        //curve[i] = x * x - Math.tan(x) - .5 * x * 2 * Math.cos(x * 5);
+
+        curve[i] = ( 3 + k ) * x * 20 * deg / ( Math.PI + k * Math.abs(x) );
+    }
+    return curve;
+}
+
+export {audioCtx, setupWebAudio, playCurrentSound, pauseCurrentSound, loadSoundFile, setVolume, element, analyserNode, distortion, toggleDistortion};

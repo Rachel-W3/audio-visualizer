@@ -8,11 +8,14 @@
 </head>
 <body>
 <main>
-	<canvas width="800" height="400"></canvas>
-	<div id="progress-bar">
-		<div id="bar"></div>
-	</div>
-	<div id="controls">
+	<div id="left-controls">
+		<canvas width="1200" height="600"></canvas>
+		<section>
+			<span id="progressLabel">???</span>
+			<div id="progress-bar">
+				<div id="bar"></div>
+			</div>
+		</section>
 		<section>
 			<button id="playButton" data-playing="no"></button>
 			<button id="fsButton">Full Screen</button>
@@ -25,7 +28,9 @@
 				</select>
 			</label>
 		</section>
-		
+	</div>
+	<div id="right-controls">
+		<header><h1>Cold Nights</h1></header>
 		<section>
 			Volume: <input type="range" id="volumeSlider" min="0" max="2" value="1" step="0.01">
 			<span id="volumeLabel">???</span>
@@ -38,12 +43,17 @@
 			Particle Spawn Rate (Seconds): <input type="range" id="rateSlider" min="0.1" max="2" value="1" step="0.1">
 			<span id="rateLabel">???</span>
 		</section>
+		<section>
+			Bar Spacing: <input type="range" id="spacingSlider" min="1" max="9" value="5" step="0.1">
+			<span id="spacingLabel">???</span>
+		</section>
 
 		<section>
 			<span><input type="checkbox" id="particlesCB"><label for="particlesCB">Show Particles</label></span>
 			<span><input type="checkbox" id="barsCB"><label for="barsCB">Show Bars</label></span>
 			<span><input type="checkbox" id="noiseCB"><label for="noiseCB">Show Noise</label></span>
 			<span><input type="checkbox" id="embossCB"><label for="embossCB">Emboss Effect</label></span>
+			<span><input type="checkbox" id="distortionCB"><label for="distortionCB">Audio Distortion Effect</label></span>
 		</section>
 		<section>
 			<input type="radio" id="dayTime" name="mode" value="dayTime">
@@ -53,6 +63,7 @@
 			<input type="radio" id="eclipse" name="mode" value="eclipse">
 			<label for="eclipse">Eclipse</label>
 		</section>
+		<footer>Copyright &copy; Rachel Wong 2020</footer>
 	</div>
 </main>
 </body>

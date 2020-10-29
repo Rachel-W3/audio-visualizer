@@ -17,7 +17,8 @@ const drawParams = {
   showEmboss: false,
   particleMultiplier: 1,
   spawnRate: 1,
-  mode: "nightTime"
+  barSpacing: 5,
+  mode: "nightTime",
 };
 
 let startTime;
@@ -74,6 +75,8 @@ function setupUI(canvasElement) {
   let pmLabel = document.querySelector("#pmLabel");
   let rateSlider = document.querySelector("#rateSlider");
   let rateLabel = document.querySelector("#rateLabel");
+  let spacingSlider = document.querySelector("#spacingSlider");
+  let spacingLabel = document.querySelector("#spacingLabel");
 
   // add .oninput event to slider
   volumeSlider.oninput = e => {
@@ -93,10 +96,16 @@ function setupUI(canvasElement) {
     rateLabel.innerHTML = e.target.value;
   }
 
+  spacingSlider.oninput = e => {
+    drawParams.barSpacing = e.target.value;
+    spacingLabel.innerHTML = e.target.value;
+  }
+
   // set value of label to match initial value of slider
   volumeSlider.dispatchEvent(new Event("input"));
   pmSlider.dispatchEvent(new Event("input"));
   rateSlider.dispatchEvent(new Event("input"));
+  spacingSlider.dispatchEvent(new Event("input"));
 
   // D - hookup track <select>
   let trackSelect = document.querySelector("#trackSelect");
@@ -114,6 +123,7 @@ function setupUI(canvasElement) {
   document.querySelector("#barsCB").checked = drawParams.showBars;
   document.querySelector("#noiseCB").checked = drawParams.showNoise;
   document.querySelector("#embossCB").checked = drawParams.showEmboss;
+  document.querySelector('#distortionCB').checked = audio.distortion;
 
   document.querySelector("#particlesCB").onchange = e => {
     drawParams.showParticles = e.target.checked;
@@ -131,6 +141,10 @@ function setupUI(canvasElement) {
     drawParams.showEmboss = e.target.checked;
   }
 
+  document.querySelector('#distortionCB').onchange = e => {
+    audio.toggleDistortion(e.target.checked);
+  }
+
   // Radio boxes
   let radios = document.querySelectorAll("input[type=radio][name=mode]");
   for(let i = 0; i < radios.length; i++) {
@@ -142,7 +156,22 @@ function setupUI(canvasElement) {
   }
 } // end setupUI
 
+function updateProgressBar() {
+  let currentTime = audio.element.currentTime;
+  let duration = audio.element.duration;
+  document.querySelector("#bar").style.width = (currentTime/duration * 100) + "%";
+  document.querySelector("#progressLabel").innerHTML = `${toMMSS(currentTime)}/${toMMSS(duration)}`;
+}
 
+function toMMSS(value) {
+  let minutes = Math.floor(value / 60);
+  let seconds = value % 60;
+
+  if (minutes < 10) {minutes = "0"+minutes;}
+  if (seconds < 10) {seconds = "0"+seconds;}
+  
+  return minutes+':'+String(seconds).substring(0, 2); // Make sure the seconds are truncated
+}
 
 function loop(timeStamp) {
   requestAnimationFrame(loop);
@@ -151,6 +180,7 @@ function loop(timeStamp) {
   elapsedTime = timeStamp - startTime;
 
   canvas.draw(drawParams);
+  updateProgressBar();
   
   if(elapsedTime > 1000 * drawParams.spawnRate) {
     // Generate some more particles after every second
