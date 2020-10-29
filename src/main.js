@@ -13,11 +13,11 @@ import * as utils from './utils.js';
 const drawParams = {
   showParticles: true,
   showBars: true,
-  dayTime: false,
   showNoise: false,
-  showInvert: false,
   showEmboss: false,
-  particleMultiplier: 1
+  particleMultiplier: 1,
+  spawnRate: 1,
+  mode: "nightTime"
 };
 
 let startTime;
@@ -25,21 +25,16 @@ let elapsedTime;
 
 // 1 - here we are faking an enumeration
 const DEFAULTS = Object.freeze({
-  sound1: "media/Cave Story - Moonsong (Curly's Deep House Remix) - GameChops (192 kbps).mp3"
+  sound1: "media/Cave-Story_Moonsong.mp3"
 });
 
 function init() {
   audio.setupWebAudio(DEFAULTS.sound1);
   console.log("init called");
-  console.log(`Testing utils.getRandomColor() import: ${utils.getRandomColor()}`);
   let canvasElement = document.querySelector("canvas"); // hookup <canvas> element
   setupUI(canvasElement);
   canvas.setupCanvas(canvasElement, audio.analyserNode);
   loop();
-  // // Generate some more particles after every second
-  // let min = 5 * drawParams.particleMultiplier;
-  // let max = 15 * drawParams.particleMultiplier;
-  // setInterval(canvas.generateParticles, 1000, utils.getRandom(min,max));
 }
 
 function setupUI(canvasElement) {
@@ -77,6 +72,8 @@ function setupUI(canvasElement) {
   let volumeLabel = document.querySelector("#volumeLabel");
   let pmSlider = document.querySelector("#pmSlider");
   let pmLabel = document.querySelector("#pmLabel");
+  let rateSlider = document.querySelector("#rateSlider");
+  let rateLabel = document.querySelector("#rateLabel");
 
   // add .oninput event to slider
   volumeSlider.oninput = e => {
@@ -91,9 +88,15 @@ function setupUI(canvasElement) {
     pmLabel.innerHTML = e.target.value;
   }
 
+  rateSlider.oninput = e => {
+    drawParams.spawnRate = e.target.value;
+    rateLabel.innerHTML = e.target.value;
+  }
+
   // set value of label to match initial value of slider
   volumeSlider.dispatchEvent(new Event("input"));
   pmSlider.dispatchEvent(new Event("input"));
+  rateSlider.dispatchEvent(new Event("input"));
 
   // D - hookup track <select>
   let trackSelect = document.querySelector("#trackSelect");
@@ -109,9 +112,7 @@ function setupUI(canvasElement) {
   // E - Checkboxes
   document.querySelector("#particlesCB").checked = drawParams.showParticles;
   document.querySelector("#barsCB").checked = drawParams.showBars;
-  document.querySelector("#dayCB").checked = drawParams.dayTime;
   document.querySelector("#noiseCB").checked = drawParams.showNoise;
-  document.querySelector("#invertCB").checked = drawParams.showInvert;
   document.querySelector("#embossCB").checked = drawParams.showEmboss;
 
   document.querySelector("#particlesCB").onchange = e => {
@@ -122,22 +123,23 @@ function setupUI(canvasElement) {
     drawParams.showBars = e.target.checked;
   }
 
-  document.querySelector("#dayCB").onchange = e => {
-    drawParams.dayTime = e.target.checked;
-  }
-
   document.querySelector("#noiseCB").onchange = e => {
     drawParams.showNoise = e.target.checked;
-  }
-
-  document.querySelector("#invertCB").onchange = e => {
-    drawParams.showInvert = e.target.checked;
   }
 
   document.querySelector("#embossCB").onchange = e => {
     drawParams.showEmboss = e.target.checked;
   }
 
+  // Radio boxes
+  let radios = document.querySelectorAll("input[type=radio][name=mode]");
+  for(let i = 0; i < radios.length; i++) {
+    radios[i].onchange = () => {
+      if(radios[i].checked) {
+        drawParams.mode = radios[i].value;
+      }
+    }
+  }
 } // end setupUI
 
 
@@ -150,7 +152,7 @@ function loop(timeStamp) {
 
   canvas.draw(drawParams);
   
-  if(elapsedTime > 1000) {
+  if(elapsedTime > 1000 * drawParams.spawnRate) {
     // Generate some more particles after every second
     let min = 5 * drawParams.particleMultiplier;
     let max = 15 * drawParams.particleMultiplier;

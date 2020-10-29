@@ -39,11 +39,11 @@ function generateParticles(num) {
     }
 }
 
-function drawBarsAndHills(showBars, dayTime) {
+function drawBarsAndHills(showBars, mode) {
     // Bar variables
     let midpoint = audioData.length / 2;
-    let barSpacing = 3;
     let margin = 0;
+    let barSpacing = 3.5;
     let screenWidthForBars = canvasWidth - (audioData.length * barSpacing) - margin * 2;
     let barWidth = screenWidthForBars / midpoint;
     let barHeight = 200;
@@ -65,7 +65,7 @@ function drawBarsAndHills(showBars, dayTime) {
     // 4 - draw rear bars
     if(showBars) {
         ctx.save();
-        if(dayTime) ctx.fillStyle = 'rgba(32, 90, 69)';
+        if(mode == "dayTime") ctx.fillStyle = 'rgba(32, 90, 69)';
         else ctx.fillStyle = 'rgba(147, 192, 163, 0.5)';
         // loop through lower frequencies and draw the data over rear hill
         for(let i = midpoint; i >= 0; i--) {
@@ -84,7 +84,7 @@ function drawBarsAndHills(showBars, dayTime) {
 
     // draw rear hill
     ctx.save();
-    if(dayTime) ctx.fillStyle = 'rgba(62, 173, 133)';
+    if(mode == "dayTime") ctx.fillStyle = 'rgba(62, 173, 133)';
     else ctx.fillStyle = 'rgb(32, 90, 69)';
     ctx.beginPath();
     ctx.moveTo(rearSX, rearSY);
@@ -95,7 +95,7 @@ function drawBarsAndHills(showBars, dayTime) {
     // draw front bars
     if(showBars) {
         ctx.save();
-        if(dayTime) ctx.fillStyle = 'rgb(32, 90, 69, 0.5)';
+        if(mode == "dayTime") ctx.fillStyle = 'rgb(32, 90, 69, 0.5)';
         else ctx.fillStyle = 'rgb(147, 192, 163)';
         // loop through higher frequencies and draw the data over front hill
         for(let i = midpoint-1; i < audioData.length; i++) {
@@ -108,7 +108,7 @@ function drawBarsAndHills(showBars, dayTime) {
 
     // draw front hill
     ctx.save();
-    if(dayTime) ctx.fillStyle = 'rgb(108, 203, 168)';
+    if(mode == "dayTime") ctx.fillStyle = 'rgb(108, 203, 168)';
     else ctx.fillStyle = 'rgb(45, 126, 96)';
     ctx.beginPath();
     ctx.moveTo(frontSX, frontSY);
@@ -135,7 +135,7 @@ function drawParticles(showParticles) {
     }
 }
 
-function drawMoon(dayTime) {
+function drawMoon(mode) {
     // 5 - draw moon/sun
     // Size of the moon is determined by audio data
     let percent = 0;
@@ -145,7 +145,7 @@ function drawMoon(dayTime) {
     }
     ctx.save();
     let color;
-    if(dayTime) color = 'rgb(253, 213, 79)';
+    if(mode == "dayTime") color = 'rgb(253, 213, 79)';
     else color = 'rgb(253, 254, 200)';
     ctx.fillStyle = color;
     ctx.beginPath();
@@ -174,18 +174,17 @@ function bitmapManipulation(params={}) {
 	
 	// B) Iterate through each pixel, stepping 4 elements at a time (which is the RGBA for 1 pixel)
     for (let i = 0; i < length; i += 4) {
-		// C) randomly change every 20th pixel to red
-        if (params.showNoise && Math.random() < .05) {
+		// C) randomly change every 100th pixel to white
+        if (params.showNoise && Math.random() < .01) {
 			// data[i] is the red channel
 			// data[i+1] is the green channel
 			// data[i+2] is the blue channel
 			// data[i+3] is the alpha channel
-			data[i] = data[i+1] = data[i+2] = 0;// zero out the red and green and blue channels
-			data[i] = 255; // make the red channel 100% red
+			data[i] = data[i+1] = data[i+2] = 255;
         } // end if
         
         // D) Invert the values of the color channels
-        if(params.showInvert) {
+        if(params.mode == "eclipse") {
             let red = data[i], green = data[i+1], blue = data[i+2];
             data[i] = 255 - red; // invert red value
             data[i+1] = 255 - green; // invert green value
@@ -217,15 +216,15 @@ function draw(params={}){
 	// 2 - draw background
     ctx.save();
     // create a gradient that runs top to bottom
-    if(params.dayTime) gradient = utils.getLinearGradient(ctx,0,0,0,canvasHeight,[{percent:0,color:"#4072b9"},{percent:0.5,color:"#7cabd9"},{percent:1,color:"#c3d8e9"}]);
+    if(params.mode == "dayTime") gradient = utils.getLinearGradient(ctx,0,0,0,canvasHeight,[{percent:0,color:"#4072b9"},{percent:0.5,color:"#7cabd9"},{percent:1,color:"#c3d8e9"}]);
     else gradient = utils.getLinearGradient(ctx,0,0,0,canvasHeight,[{percent:0,color:"#020c26"},{percent:0.5,color:"#032140"},{percent:1,color:"#215e70"}]);
     ctx.fillStyle = gradient;
     ctx.fillRect(0,0,canvasWidth,canvasHeight);
     ctx.restore();
 
-    drawBarsAndHills(params.showBars, params.dayTime);
+    drawBarsAndHills(params.showBars, params.mode);
     drawParticles(params.showParticles);
-    drawMoon(params.dayTime);
+    drawMoon(params.mode);
 
     bitmapManipulation(params);
 

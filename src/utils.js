@@ -63,4 +63,15 @@ const getBezierY = (t, sy, cp1y, cp2y, ey) => {
   return Math.pow(1 - t, 3) * sy + 3 * t * Math.pow(1 - t, 2) * cp1y + 3 * t * t * (1 - t) * cp2y + t * t * t * ey;
 }
 
-export { makeColor, getRandomColor, getRandom, getLinearGradient, goFullscreen, getBezierX, getBezierY, getRandomUnitVector };
+// http://stackoverflow.com/questions/21797299/convert-base64-string-to-arraybuffer
+const base64ToArrayBuffer = (base64) => {
+  var binaryString = window.atob(base64);
+  var len = binaryString.length;
+  var bytes = new Uint8Array(len);
+  for (var i = 0; i < len; i++)        {
+      bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+export { makeColor, getRandomColor, getRandom, getLinearGradient, goFullscreen, getBezierX, getBezierY, getRandomUnitVector, base64ToArrayBuffer };

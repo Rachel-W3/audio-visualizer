@@ -9,6 +9,9 @@
 <body>
 <main>
 	<canvas width="800" height="400"></canvas>
+	<div id="progress-bar">
+		<div id="bar"></div>
+	</div>
 	<div id="controls">
 		<section>
 			<button id="playButton" data-playing="no"></button>
@@ -16,9 +19,9 @@
 		
 			<label>Track: 
 				<select id="trackSelect">
-					<option value="media/Cave Story - Moonsong (Curly's Deep House Remix) - GameChops (192 kbps).mp3" selected>Cave Story ▸ Moonsong (Curly's Deep House Remix) ▸ GameChops</option>
-					<option value="media/Pokémon Sun and Moon_ Hau'oli City Remix (192 kbps).mp3">Pokémon Sun and Moon: Hau'oli City Remix</option>
-					<option value="media/Zelda & Chill - Lost Woods - Mikel Lofi Remix (192 kbps).mp3">Zelda & Chill ▸ Lost Woods ▸ Mikel Lofi Remix</option>
+					<option value="media/Cave-Story_Moonsong.mp3" selected>Cave Story ▸ Moonsong (Curly's Deep House Remix) ▸ GameChops</option>
+					<option value="media/Pokémon-Sun-and-Moon_ Hauoli-City-Remix.mp3">Pokémon Sun and Moon: Hau'oli City Remix</option>
+					<option value="media/Zelda-N-Chill_Lost-Woods_Mikel-Lofi-Remix.mp3">Zelda & Chill ▸ Lost Woods ▸ Mikel Lofi Remix</option>
 				</select>
 			</label>
 		</section>
@@ -31,30 +34,21 @@
 			Particle Multiplier: <input type="range" id="pmSlider" min="0.5" max="5" value="1" step="0.1">
 			<span id="pmLabel">???</span>
 		</section>
-		<!-- Will implement later
 		<section>
-			Bar Width: <input type="range" id="pmSlider" min="0.5" max="5" value="1" step="0.1">
-			<span id="pmLabel">???</span>
-		</section> -->
+			Particle Spawn Rate (Seconds): <input type="range" id="rateSlider" min="0.1" max="2" value="1" step="0.1">
+			<span id="rateLabel">???</span>
+		</section>
 
 		<section>
 			<span><input type="checkbox" id="particlesCB"><label for="particlesCB">Show Particles</label></span>
 			<span><input type="checkbox" id="barsCB"><label for="barsCB">Show Bars</label></span>
-			<span><input type="checkbox" id="dayCB"><label for="dayCB">Day Mode</label></span>
-			<span><input type="checkbox" id="invertCB"><label for="invertCB">Eclipse Mode</label></span>
 			<span><input type="checkbox" id="noiseCB"><label for="noiseCB">Show Noise</label></span>
 			<span><input type="checkbox" id="embossCB"><label for="embossCB">Emboss Effect</label></span>
 		</section>
-
-		<p>
-			NOTE: Radio buttons don't do anything for now, but they're effectively the same as
-			using the "Day Mode" and "Eclipse Mode" checkboxes. This implementation will be reflected
-			in the final product.
-		</p>
 		<section>
 			<input type="radio" id="dayTime" name="mode" value="dayTime">
 			<label for="dayTime">Daytime</label><br>
-			<input type="radio" id="nightTime" name="mode" value="nightTime">
+			<input type="radio" id="nightTime" name="mode" value="nightTime" checked>
 			<label for="nightTime">Nighttime</label><br>
 			<input type="radio" id="eclipse" name="mode" value="eclipse">
 			<label for="eclipse">Eclipse</label>

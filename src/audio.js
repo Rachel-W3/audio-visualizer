@@ -1,9 +1,11 @@
+import * as utils from './utils.js';
+
 // 1 - our WebAudio context, **we will export and make this public at the bottom of the file**
 let audioCtx;
 
 // **These are "private" properties - these will NOT be visible outside of this module (i.e. file)**
 // 2 - WebAudio nodes that are part of our WebAudio audio routing graph
-let element, sourceNode, analyserNode, gainNode;
+let element, sourceNode, analyserNode, gainNode, reverb;
 
 // 3 - here we are faking an enumeration
 const DEFAULTS = Object.freeze({
@@ -51,10 +53,28 @@ function setupWebAudio(filePath){
     gainNode = audioCtx.createGain();
     gainNode.gain.value = DEFAULTS.gain;
 
+    // Create reverb with convolver node
+    reverb = await createReverb(element.src);
+
     // 8 - connect the nodes - we now have an audio graph
     sourceNode.connect(analyserNode);
     analyserNode.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
+    //gainNode.connect(audioCtx.destination);
+    gainNode.connect(reverb);
+    reverb.connect(audioCtx.destination);
+}
+
+// Source code: https://developer.mozilla.org/en-US/docs/Web/API/ConvolverNode
+async function createReverb(filePath) {
+    let convolver = audioCtx.createConvolver();
+
+    // load impulse response from file
+    let response     = await fetch(filePath);
+    console.log(response);
+    let arraybuffer  = await response.arrayBuffer();
+    convolver.buffer = await audioCtx.decodeAudioData(arraybuffer);
+
+    return convolver;
 }
 
 function loadSoundFile(filePath) {
@@ -72,6 +92,10 @@ function pauseCurrentSound(){
 function setVolume(value){
     value = Number(value); // make sure that it's a Number rather than a String
     gainNode.gain.value = value;
+}
+
+function drawProgressBar() {
+    
 }
 
 export {audioCtx, setupWebAudio, playCurrentSound, pauseCurrentSound, loadSoundFile, setVolume, analyserNode};
