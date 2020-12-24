@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<title>Cold Nights | Audio Visualizer</title>
+	<title>Audio Visualizer</title>
 	<link href="styles/default-styles.css" type="text/css" rel="stylesheet" />
 	<script src="./src/loader.js" type="module"></script>
 </head>
 <body>
+<header><h1>Audio Visualizer</h1></header>
 <main>
 	<div id="left-controls">
 		<canvas width="1200" height="600"></canvas>
@@ -30,7 +31,7 @@
 		</section>
 	</div>
 	<div id="right-controls">
-		<header><h1>Cold Nights</h1></header>
+		<h2>Additional Controls</h2>
 		<section>
 			Volume: <input type="range" id="volumeSlider" min="0" max="2" value="1" step="0.01">
 			<span id="volumeLabel">???</span>
@@ -63,8 +64,8 @@
 			<input type="radio" id="eclipse" name="mode" value="eclipse">
 			<label for="eclipse">Eclipse</label>
 		</section>
-		<footer>Copyright &copy; Rachel Wong 2020</footer>
 	</div>
 </main>
+<footer>Copyright &copy; Rachel Wong 2020</footer>
 </body>
 </html>

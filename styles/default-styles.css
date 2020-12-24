@@ -4,6 +4,10 @@ body {
   color: rgb(253, 254, 200);
 }
 
+header {
+  margin-left: 1rem;
+}
+
 main {
   display: grid;
   grid-template-areas:
@@ -17,14 +21,10 @@ canvas {
 
 #left-controls{
   margin-left: 1rem;
-  /* float: left;
-  width: 60vw; */
   grid-area: left;
 }
 
 #right-controls{
-  /* margin-left: 1rem; */
-  /* float: right; */
   grid-area: right;
 }
 
@@ -68,4 +68,5 @@ button[data-playing="no"]:after{
 
 footer {
   text-align: center;
+  margin: 2rem 0px;
 }
